@@ -16,7 +16,9 @@ module contains the following functions:
 * ``text_bisect_left(a, x, lo=0, hi=None, key=lambda x: x)`` locates the
   insertion point for line *x* in seekable filelike object *a*
   consisting of a number of lines; *x* must be specified without a
-  trailing newline. The parameters *lo* and *hi*, if specified, must be
+  trailing newline. *a* must use ``\n`` as the newline character and
+  must not perform any line endings translation (use ``open(...,
+  newline='\n')``).  The parameters *lo* and *hi*, if specified, must be
   absolute positions within object *a*, and specify which part of *a* to
   search; the default is to search the entire *a*. The character pointed
   to by *hi* (or the last character of the object, if *hi* is
