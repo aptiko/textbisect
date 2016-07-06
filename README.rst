@@ -6,6 +6,10 @@ textbisect - Binary search in a text file
     :alt: Build button
     :target: https://travis-ci.org/aptiko/textbisect
 
+.. image:: https://codecov.io/github/aptiko/textbisect/coverage.svg?branch=master
+    :alt: Coverage
+    :target: https://codecov.io/gh/aptiko/textbisect
+
 Description
 ===========
 
