@@ -13,4 +13,10 @@ setup(
     url="https://github.com/openmeteo/textbisect",
     packages=find_packages(),
     test_suite="tests",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        ("License :: OSI Approved :: GNU General Public License "
+         "v3 or later (GPLv3+)"),
+        "Topic :: Text Processing :: Indexing",
+    ],
 )

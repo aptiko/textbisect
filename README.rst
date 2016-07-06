@@ -10,6 +10,16 @@ textbisect - Binary search in a text file
     :alt: Coverage
     :target: https://codecov.io/gh/aptiko/textbisect
 
+.. image:: https://img.shields.io/pypi/l/textbisect.svg
+    :alt: License
+
+.. image:: https://img.shields.io/pypi/status/textbisect.svg
+    :alt: Status
+
+.. image:: https://img.shields.io/pypi/v/textbisect.svg
+    :alt: Latest version
+    :target: https://pypi.python.org/pypi/textbisect
+
 Description
 ===========
 
