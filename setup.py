@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="textbisect",
-    version="DEV",
+    version="0.1.0",
     license="GPL3",
     description="Binary search in a sorted text file",
     author="Antonis Christofides",
