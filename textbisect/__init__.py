@@ -2,7 +2,6 @@ from io import SEEK_END
 
 
 class TextBisector:
-
     def __init__(self, a, x, on_same, key):
         self.a = a
         self.x = x
@@ -25,7 +24,7 @@ class TextBisector:
                 return self.a.seek(pos)
             self.a.seek(pos - 1)
             char = self.a.read(1)
-            if char == '\n':
+            if char == "\n":
                 return pos
             pos -= 1
 
@@ -37,7 +36,7 @@ class TextBisector:
             if pos > hi:
                 raise EOFError("File must end in line feed")
             char = self.a.read(1)
-            if char == '\n':
+            if char == "\n":
                 return self.a.seek(pos)
             pos += 1
 
@@ -64,20 +63,20 @@ class TextBisector:
         # Bisect the space and decide which way to continue
         (line, start, end) = self.get_line((lo + hi) // 2, lo, hi)
         val = self.key(line)
-        if (self.ref < val) or (self.ref == val and self.on_same == 'left'):
+        if (self.ref < val) or (self.ref == val and self.on_same == "left"):
             return self.bisect(lo, start - 1)
         else:
             return self.bisect(end + 1, hi)
 
 
 def text_bisect_left(a, x, lo=0, hi=None, key=lambda x: x):
-    bisector = TextBisector(a, x, 'left', key)
+    bisector = TextBisector(a, x, "left", key)
     hi = bisector.get_hi(hi)
     return bisector.bisect(lo, hi)
 
 
 def text_bisect_right(a, x, lo=0, hi=None, key=lambda x: x):
-    bisector = TextBisector(a, x, 'right', key)
+    bisector = TextBisector(a, x, "right", key)
     hi = bisector.get_hi(hi)
     return bisector.bisect(lo, hi)
 

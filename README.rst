@@ -2,23 +2,21 @@
 textbisect - Binary search in a text file
 =========================================
 
-.. image:: https://travis-ci.org/aptiko/textbisect.svg?branch=master
-    :alt: Build button
-    :target: https://travis-ci.org/aptiko/textbisect
-
-.. image:: https://codecov.io/github/aptiko/textbisect/coverage.svg?branch=master
-    :alt: Coverage
-    :target: https://codecov.io/gh/aptiko/textbisect
-
-.. image:: https://img.shields.io/pypi/l/textbisect.svg
-    :alt: License
-
-.. image:: https://img.shields.io/pypi/status/textbisect.svg
-    :alt: Status
-
 .. image:: https://img.shields.io/pypi/v/textbisect.svg
-    :alt: Latest version
     :target: https://pypi.python.org/pypi/textbisect
+
+.. image:: https://img.shields.io/travis/aptiko/textbisect.svg
+    :target: https://travis-ci.org/aptiko/textbisect
+    :alt: Build button
+
+.. image:: https://codecov.io/github/aptiko/textbisect/coverage.svg
+    :target: https://codecov.io/gh/aptiko/textbisect
+    :alt: Coverage
+
+.. image:: https://pyup.io/repos/github/aptiko/textbisect/shield.svg
+    :target: https://pyup.io/repos/github/aptiko//textbisect/
+    :alt: Updates
+
 
 Description
 ===========
