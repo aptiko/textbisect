@@ -1,38 +1,40 @@
-from io import StringIO
 import textwrap
+from io import StringIO
 from unittest import TestCase
 
 from textbisect import text_bisect, text_bisect_left, text_bisect_right
 
 
-testtext = textwrap.dedent("""\
-                           alpha
-                           bravo
-                           charlie
-                           delta
-                           echo
-                           foxtrot
-                           golf
-                           hotel
-                           india
-                           juillet
-                           kilo
-                           lima
-                           mike
-                           november
-                           oscar
-                           papa
-                           quebec
-                           romeo
-                           sierra
-                           tango
-                           uniform
-                           victor
-                           whiskey
-                           x-ray
-                           yankee
-                           zulu
-                           """)
+testtext = textwrap.dedent(
+    """\
+    alpha
+    bravo
+    charlie
+    delta
+    echo
+    foxtrot
+    golf
+    hotel
+    india
+    juillet
+    kilo
+    lima
+    mike
+    november
+    oscar
+    papa
+    quebec
+    romeo
+    sierra
+    tango
+    uniform
+    victor
+    whiskey
+    x-ray
+    yankee
+    zulu
+    """
+)
 
 # These are the positions in which each of the line of the above string start:
 #
@@ -267,4 +269,27 @@ class TestTextBisect(TestCase):
         self.assertEqual(pos, self.f.tell())
         pos = text_bisect_right(self.f, 'twelvetwelve', lo=6, hi=29, key=len)
         self.assertEqual(pos, 30)
+        self.assertEqual(pos, self.f.tell())
+
+    def test_bisect_only_one_line(self):
+        self.f = StringIO('bravo\n')
+
+        # Should insert before
+        pos = text_bisect(self.f, 'alpha')
+        self.assertEqual(pos, 0)
+        self.assertEqual(pos, self.f.tell())
+
+        # Should insert after
+        pos = text_bisect(self.f, 'charlie')
+        self.assertEqual(pos, 6)
+        self.assertEqual(pos, self.f.tell())
+
+        # Bisect left
+        pos = text_bisect_left(self.f, 'bravo')
+        self.assertEqual(pos, 0)
+        self.assertEqual(pos, self.f.tell())
+
+        # Bisect right
+        pos = text_bisect_right(self.f, 'bravo')
+        self.assertEqual(pos, 6)
         self.assertEqual(pos, self.f.tell())
