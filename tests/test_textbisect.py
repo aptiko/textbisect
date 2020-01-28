@@ -88,208 +88,182 @@ testtext2 = textwrap.dedent(
 #             42 (length of file, or position of next character to be appended)
 
 
-class TestTextBisect(TestCase):
-    def test_text_bisect(self):
-        self.f = StringIO(testtext)
-
-        # Beginning of file
-        pos = text_bisect(self.f, "alice")
-        self.assertEqual(pos, 0)
+class TextBisectTestCaseBase(TestCase):
+    def _do_test(self, search_term, expected_result, direction="", lo=0, hi=None):
+        function = {
+            "left": text_bisect_left,
+            "right": text_bisect_right,
+            "": text_bisect,
+        }[direction]
+        pos = function(self.f, search_term, lo=lo, hi=hi, key=self.__class__.KEY)
+        self.assertEqual(pos, expected_result)
         self.assertEqual(pos, self.f.tell())
 
-        # End of file
-        pos = text_bisect(self.f, "zuzu")
-        self.assertEqual(pos, 166)
-        self.assertEqual(pos, self.f.tell())
 
-        # Somewhere in the file
-        pos = text_bisect(self.f, "somewhere")
-        self.assertEqual(pos, 119)
-        self.assertEqual(pos, self.f.tell())
+class TextBisectWithoutKeyTestCase(TextBisectTestCaseBase):
+    def KEY(x):
+        return x
 
-        # Bisect left
-        pos = text_bisect_left(self.f, "lima")
-        self.assertEqual(pos, 69)
-        self.assertEqual(pos, self.f.tell())
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.f = StringIO(testtext)
 
-        # Bisect right
-        pos = text_bisect_right(self.f, "lima")
-        self.assertEqual(pos, 74)
-        self.assertEqual(pos, self.f.tell())
+    def test_beginning_of_file(self):
+        self._do_test("alice", 0)
 
-        # Beginning of file part
-        pos = text_bisect(self.f, "bob", lo=106)
-        self.assertEqual(pos, 106)
-        self.assertEqual(pos, self.f.tell())
+    def test_end_of_file(self):
+        self._do_test("zuzu", 166)
 
-        # Beginning of file part starting in middle of line
-        pos = text_bisect(self.f, "bob", lo=108)
-        self.assertEqual(pos, 108)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "nick", lo=108)
-        self.assertEqual(pos, 112)
-        self.assertEqual(pos, self.f.tell())
+    def test_somewhere_in_file(self):
+        self._do_test("somewhere", 119)
 
-        # Beginning of file part starting in end of line
-        pos = text_bisect(self.f, "bob", lo=111)
-        self.assertEqual(pos, 112)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_left(self):
+        self._do_test("lima", 69, direction="left")
 
-        # Beginning of file part starting at end of file
-        pos = text_bisect(self.f, "bob", lo=166)
-        self.assertEqual(pos, 166)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "bob", lo=165)
-        self.assertEqual(pos, 166)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_right(self):
+        self._do_test("lima", 74, direction="right")
 
-        # End of file part
-        pos = text_bisect(self.f, "nick", hi=73)
-        self.assertEqual(pos, 74)
-        self.assertEqual(pos, self.f.tell())
+    def test_in_file_part_for_something_in_the_beginning_of_that_part(self):
+        self._do_test("bob", 106, lo=106)
 
-        # End of file part ending in middle of line
+    def test_when_file_part_starts_in_middle_of_line_and_result_starts_before(self):
+        self._do_test("bob", 108, lo=108)
+
+    def test_when_file_part_starts_in_middle_of_line(self):
+        self._do_test("nick", 112, lo=108)
+
+    def test_when_file_part_starts_in_end_of_line(self):
+        self._do_test("bob", 112, lo=111)
+
+    def test_when_file_part_starts_at_end_of_file(self):
+        self._do_test("bob", 166, lo=166)
+
+    def test_when_file_part_starts_at_last_character_of_file(self):
+        self._do_test("bob", 166, lo=165)
+
+    def test_in_file_part_for_something_after_end_of_that_part(self):
+        self._do_test("nick", 74, hi=73)
+
+    def test_when_file_part_ends_in_middle_of_line(self):
         with self.assertRaises(EOFError):
-            text_bisect(self.f, "nick", hi=71)
+            self._do_test("nick", "irrelevant", hi=71)
 
-        # Beginning and end of file
-        pos = text_bisect(self.f, "nick", lo=64, hi=93)
-        self.assertEqual(pos, 79)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "george", lo=64, hi=93)
-        self.assertEqual(pos, 64)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "tango", lo=64, hi=93)
-        self.assertEqual(pos, 94)
-        self.assertEqual(pos, self.f.tell())
+    def test_searching_in_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("nick", 79, lo=64, hi=93)
 
-        # Beginning and end of file, left/right
-        pos = text_bisect_left(self.f, "kilo", lo=64, hi=93)
-        self.assertEqual(pos, 64)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_right(self.f, "kilo", lo=64, hi=93)
-        self.assertEqual(pos, 69)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_left(self.f, "oscar", lo=64, hi=93)
-        self.assertEqual(pos, 88)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_right(self.f, "oscar", lo=64, hi=93)
-        self.assertEqual(pos, 94)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_right(self.f, "papa", lo=64, hi=93)
-        self.assertEqual(pos, 94)
-        self.assertEqual(pos, self.f.tell())
+    def test_beginning_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("george", 64, lo=64, hi=93)
 
-    def test_text_bisect_with_key(self):
-        self.f = StringIO(testtext2)
+    def test_end_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("tango", 94, lo=64, hi=93)
 
-        # Beginning of file
-        pos = text_bisect(self.f, "", key=len)
-        self.assertEqual(pos, 0)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_left_at_beginning_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("kilo", 64, direction="left", lo=64, hi=93)
 
-        # End of file
-        pos = text_bisect(self.f, "twelvetwelve", key=len)
-        self.assertEqual(pos, 42)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_right_at_beginning_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("kilo", 69, direction="right", lo=64, hi=93)
 
-        # Somewhere in the file
-        pos = text_bisect(self.f, "sixsix", key=len)
-        self.assertEqual(pos, 12)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_left_at_middle_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("oscar", 88, direction="left", lo=64, hi=93)
 
-        # Bisect left
-        pos = text_bisect_left(self.f, "fiver", key=len)
-        self.assertEqual(pos, 6)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_right_at_middle_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("oscar", 94, direction="right", lo=64, hi=93)
 
-        # Bisect right
-        pos = text_bisect_right(self.f, "fiver", key=len)
-        self.assertEqual(pos, 12)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_right_at_end_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("papa", 94, direction="right", lo=64, hi=93)
 
-        # Beginning of file part
-        pos = text_bisect(self.f, "02", lo=12, key=len)
-        self.assertEqual(pos, 12)
-        self.assertEqual(pos, self.f.tell())
 
-        # Beginning of file part starting in middle of line
-        pos = text_bisect(self.f, "02", lo=8, key=len)
-        self.assertEqual(pos, 8)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "four", lo=8, key=len)
-        self.assertEqual(pos, 12)
-        self.assertEqual(pos, self.f.tell())
+class TextBisectWithKeyTestCase(TextBisectTestCaseBase):
+    KEY = len
 
-        # Beginning of file part starting in end of line
-        pos = text_bisect(self.f, "02", lo=5, key=len)
-        self.assertEqual(pos, 6)
-        self.assertEqual(pos, self.f.tell())
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.f = StringIO(testtext2)
 
-        # Beginning of file part starting at end of file
-        pos = text_bisect(self.f, "any", lo=41, key=len)
-        self.assertEqual(pos, 42)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "any", lo=41, key=len)
-        self.assertEqual(pos, 42)
-        self.assertEqual(pos, self.f.tell())
+    def test_beginning_of_file(self):
+        self._do_test("", 0)
 
-        # End of file part
-        pos = text_bisect(self.f, "ten=ten=10", hi=11, key=len)
-        self.assertEqual(pos, 12)
-        self.assertEqual(pos, self.f.tell())
+    def test_end_of_file(self):
+        self._do_test("twelvetwelve", 42)
 
-        # End of file part ending in middle of line
+    def test_somewhere_in_file(self):
+        self._do_test("sixsix", 12)
+
+    def test_bisect_left(self):
+        self._do_test("fiver", 6, direction="left")
+
+    def test_bisect_right(self):
+        self._do_test("fiver", 12, direction="right")
+
+    def test_in_file_part_for_something_in_the_beginning_of_that_part(self):
+        self._do_test("02", 12, lo=12)
+
+    def test_when_file_part_starts_in_middle_of_line_and_result_starts_before(self):
+        self._do_test("02", 8, lo=8)
+
+    def test_when_file_part_starts_in_middle_of_line(self):
+        self._do_test("four", 12, lo=8)
+
+    def test_when_file_part_starts_in_end_of_line(self):
+        self._do_test("02", 6, lo=5)
+
+    def test_when_file_part_starts_at_end_of_file(self):
+        self._do_test("any", 42, lo=41)
+
+    def test_when_file_part_starts_at_last_character_of_file(self):
+        self._do_test("any", 42, lo=40)
+
+    def test_in_file_part_for_something_after_end_of_that_part(self):
+        self._do_test("ten=ten=10", 12, hi=11)
+
+    def test_when_file_part_ends_in_middle_of_line(self):
         with self.assertRaises(EOFError):
-            text_bisect(self.f, "eleven=0011", hi=32, key=len)
+            self._do_test("eleven=0011", "irrelevant", hi=32)
 
-        # Beginning and end of file
-        pos = text_bisect(self.f, "four", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 6)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "eight008", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 20)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect(self.f, "twelvetwelve", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 30)
-        self.assertEqual(pos, self.f.tell())
+    def test_beginning_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("four", 6, lo=6, hi=29)
 
-        # Beginning and end of file, left/right
-        pos = text_bisect_left(self.f, "fiver", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 6)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_right(self.f, "fiver", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 12)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_left(self.f, "nine=nine", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 20)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_right(self.f, "nine=nine", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 30)
-        self.assertEqual(pos, self.f.tell())
-        pos = text_bisect_right(self.f, "twelvetwelve", lo=6, hi=29, key=len)
-        self.assertEqual(pos, 30)
-        self.assertEqual(pos, self.f.tell())
+    def test_searching_in_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("eight008", 20, lo=6, hi=29)
 
-    def test_bisect_only_one_line(self):
-        self.f = StringIO("bravo\n")
+    def test_end_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("twelvetwelve", 30, lo=6, hi=29)
 
-        # Should insert before
-        pos = text_bisect(self.f, "alpha")
-        self.assertEqual(pos, 0)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_left_at_beginning_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("fiver", 6, direction="left", lo=6, hi=29)
 
-        # Should insert after
-        pos = text_bisect(self.f, "charlie")
-        self.assertEqual(pos, 6)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_right_at_beginning_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("fiver", 12, direction="right", lo=6, hi=29)
 
-        # Bisect left
-        pos = text_bisect_left(self.f, "bravo")
-        self.assertEqual(pos, 0)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_left_at_middle_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("nine=nine", 20, direction="left", lo=6, hi=29)
 
-        # Bisect right
-        pos = text_bisect_right(self.f, "bravo")
-        self.assertEqual(pos, 6)
-        self.assertEqual(pos, self.f.tell())
+    def test_bisect_right_at_middle_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("nine=nine", 30, direction="right", lo=6, hi=29)
+
+    def test_bisect_right_at_end_of_file_part_specified_by_both_lo_and_hi(self):
+        self._do_test("twelvetwelve", 30, direction="right", lo=6, hi=29)
+
+
+class TextBisectOnlyOneLineTestCase(TextBisectTestCaseBase):
+    def KEY(x):
+        return x
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.f = StringIO("bravo\n")
+
+    def test_before(self):
+        self._do_test("alpha", 0)
+
+    def test_after(self):
+        self._do_test("charlie", 6)
+
+    def test_left(self):
+        self._do_test("bravo", 0, direction="left")
+
+    def test_right(self):
+        self._do_test("bravo", 6, direction="right")
